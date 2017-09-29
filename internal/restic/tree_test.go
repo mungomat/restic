@@ -99,11 +99,12 @@ func TestLoadTree(t *testing.T) {
 
 	// save tree
 	tree := restic.NewTree()
-	id, err := repo.SaveTree(context.TODO(), tree)
+	id, _, err := repo.SaveTree(context.TODO(), tree)
 	rtest.OK(t, err)
 
 	// save packs
-	rtest.OK(t, repo.Flush())
+	_, err = repo.Flush())
+	rtest.OK(t, err)
 
 	// load tree again
 	tree2, err := repo.LoadTree(context.TODO(), id)

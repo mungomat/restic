@@ -107,7 +107,7 @@ func archiveDirectory(b testing.TB) {
 
 	arch := archiver.New(repo)
 
-	_, id, err := arch.Snapshot(context.TODO(), nil, []string{rtest.BenchArchiveDirectory}, nil, "localhost", nil, time.Now())
+	_, id, _, err := arch.Snapshot(context.TODO(), nil, []string{rtest.BenchArchiveDirectory}, nil, "localhost", nil, time.Now())
 	rtest.OK(b, err)
 
 	b.Logf("snapshot archived as %v", id)
@@ -237,7 +237,7 @@ func testParallelSaveWithDuplication(t *testing.T, seed int) {
 
 				id := restic.Hash(c.Data)
 				time.Sleep(time.Duration(id[0]))
-				err := arch.Save(context.TODO(), restic.DataBlob, c.Data, id)
+				_, err := arch.Save(context.TODO(), restic.DataBlob, c.Data, id)
 				<-barrier
 				errChan <- err
 			}(c, errChan)
@@ -248,8 +248,11 @@ func testParallelSaveWithDuplication(t *testing.T, seed int) {
 		rtest.OK(t, <-errChan)
 	}
 
-	rtest.OK(t, repo.Flush())
-	rtest.OK(t, repo.SaveIndex(context.TODO()))
+	_, err := repo.Flush()
+	rtest.OK(t, err)
+
+	_, err = repo.SaveIndex(context.TODO())
+	rtest.OK(t, err)
 
 	chkr := createAndInitChecker(t, repo)
 	assertNoUnreferencedPacks(t, chkr)
@@ -301,7 +304,7 @@ func TestArchiveEmptySnapshot(t *testing.T) {
 
 	arch := archiver.New(repo)
 
-	sn, id, err := arch.Snapshot(context.TODO(), nil, []string{"file-does-not-exist-123123213123", "file2-does-not-exist-too-123123123"}, nil, "localhost", nil, time.Now())
+	sn, id, _, err := arch.Snapshot(context.TODO(), nil, []string{"file-does-not-exist-123123213123", "file2-does-not-exist-too-123123123"}, nil, "localhost", nil, time.Now())
 	if err == nil {
 		t.Errorf("expected error for empty snapshot, got nil")
 	}
@@ -353,7 +356,7 @@ func TestArchiveNameCollision(t *testing.T) {
 
 	arch := archiver.New(repo)
 
-	sn, id, err := arch.Snapshot(context.TODO(), nil, []string{"testfile", filepath.Join("..", "testfile")}, nil, "localhost", nil, time.Now())
+	sn, id, _, err := arch.Snapshot(context.TODO(), nil, []string{"testfile", filepath.Join("..", "testfile")}, nil, "localhost", nil, time.Now())
 	rtest.OK(t, err)
 
 	t.Logf("snapshot archived as %v", id)
