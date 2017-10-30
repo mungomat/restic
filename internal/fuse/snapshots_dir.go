@@ -6,6 +6,7 @@ package fuse
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/restic/restic/internal/debug"
@@ -241,7 +242,7 @@ func updateSnapshotNames(d *SnapshotsDir) {
 		for _, sn := range d.root.snapshots {
 			if d.tag == "" || isElem(d.tag, sn.Tags) {
 				if d.host == "" || d.host == sn.Hostname {
-					name := sn.Time.Format(time.RFC3339)
+					name := strings.Replace(sn.Time.Format(time.RFC3339), ":", "", -1)
 					if d.latest == "" || !sn.Time.Before(latestTime) {
 						latestTime = sn.Time
 						d.latest = name
@@ -251,7 +252,7 @@ func updateSnapshotNames(d *SnapshotsDir) {
 							break
 						}
 
-						name = fmt.Sprintf("%s-%d", sn.Time.Format(time.RFC3339), i)
+						name = fmt.Sprintf("%s-%d", name, i)
 					}
 
 					d.names[name] = sn
